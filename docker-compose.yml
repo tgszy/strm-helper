@@ -1,33 +1,55 @@
 services:
   strm-api:
-    image: tgszy/strm-helper:latest          # 始终用最新构建
+    image: tgszy/strm-helper:latest
     container_name: strm-api
     restart: unless-stopped
     ports:
-      - "35455:8000"                       # 宿主机端口
-    volumes:                               # ★ 关键目录映射
-      - ./data:/app/data                   # SQLite & 日志
-      - ./media:/media                     # 宿主机媒体根（本地扫描用）
-      - ./strm:/strm                       # STRM 输出目录
-      # 如需更多，继续往下加
-      # - ./configs:/app/configs           # 可选：外挂配置
+      - "35455:35455"                 # ★ 内外端口一致
+    volumes:
+      - ./data:/app/data
+      - ./media:/media
+      - ./strm:/strm
     environment:
       - TZ=Asia/Shanghai
-      # 后续扩展（Redis、PostgreSQL 等）直接往下加
-      # - REDIS_URL=redis://redis:6379/0
+      - REDIS_URL=redis://redis:6379/0
     networks:
       - strm-net
 
-  # 示例：如需前端静态文件，可再加 nginx 服务（可选）
-  # nginx:
-  #   image: nginx:alpine
-  #   container_name: strm-ui
-  #   ports:
-  #     - "80:80"
-  #   volumes:
-  #     - ./frontend/dist:/usr/share/nginx/html
-  #   networks:
-  #     - strm-net
+  redis:
+    image: redis:7-alpine
+    container_name: strm-redis
+    restart: unless-stopped
+    networks:
+      - strm-net
+
+  worker:
+    image: tgszy/strm-helper:latest
+    container_name: strm-worker
+    restart: unless-stopped
+    command: celery -A backend.celery_app.celery worker -l info -Q default -c 4
+    volumes:
+      - ./data:/app/data
+      - ./media:/media
+      - ./strm:/strm
+    environment:
+      - TZ=Asia/Shanghai
+      - REDIS_URL=redis://6379/0
+    depends_on:
+      - redis
+    networks:
+      - strm-net
+
+  flower:
+    image: mher/flower:2.0
+    container_name: strm-flower
+    restart: unless-stopped
+    command: flower --broker=redis://redis:6379/0 --port=5555
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+    networks:
+      - strm-net
 
 networks:
   strm-net:
