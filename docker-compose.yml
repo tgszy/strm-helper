@@ -15,12 +15,12 @@ services:
       - TZ=Asia/Shanghai
       - REDIS_URL=redis://redis:6379/0
     # 若 /health 未实现，先注释掉下面 6 行
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:35455/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+    #healthcheck:
+      #test: ["CMD", "curl", "-f", "http://localhost:35455/health"]
+      #interval: 30s
+      #timeout: 10s
+      #retries: 3
+      #start_period: 40s
     networks:
       - strm-helper-net
 
