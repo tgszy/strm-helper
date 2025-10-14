@@ -11,9 +11,12 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { mockList } from '@/api'
+import { listMedia } from '@/api'
 import VersionCard from '@/components/VersionCard.vue'
 
 const media = ref([])
-onMounted(async () => { media.value = (await mockList()).data })
+onMounted(async () => {
+  const { data } = await listMedia()
+  media.value = data
+})
 </script>
