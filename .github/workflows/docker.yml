@@ -31,6 +31,13 @@ jobs:
           tags: ${{ env.IMAGE_NAME }}:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # 添加构建参数和错误处理
+          build-args: |
+            NODE_ENV=production
+          # 启用详细日志
+          provenance: false
+          # 设置构建超时时间
+          timeout: 20m
 
   build-and-push:
     runs-on: ubuntu-latest
@@ -95,6 +102,8 @@ jobs:
           # 添加构建参数和更好的错误处理
           build-args: |
             NODE_ENV=production
-          # 启用详细日志
+          # 启用详细日志和更好的错误处理
           provenance: false
+          # 设置构建超时时间
+          timeout: 20m
           # 添加构建失败时的调试信息
