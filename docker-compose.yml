@@ -1,7 +1,7 @@
 services:
   strm-api:
     image: tgszy/strm-helper:latest
-    container_name: strm-api
+    container_name: strm-helper
     restart: unless-stopped
     ports:
       - "35455:35455"                 # ★ 内外端口一致
