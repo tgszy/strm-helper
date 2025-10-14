@@ -44,6 +44,26 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      # 验证版本号格式（修复语义化版本问题）
+      - name: Validate version format
+        run: |
+          # 获取发布版本号并清理格式
+          VERSION="${{ github.event.release.tag_name }}"
+          echo "Original version: $VERSION"
+          
+          # 移除前缀 'v' 如果存在
+          VERSION="${VERSION#v}"
+          
+          # 验证是否为有效的语义化版本（三段位）
+          if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Valid semver: $VERSION"
+            echo "VALID_VERSION=$VERSION" >> $GITHUB_ENV
+          else
+            echo "Invalid semver format: $VERSION"
+            echo "Expected format: MAJOR.MINOR.PATCH (e.g., 1.0.0)"
+            exit 1
+          fi
+
       # 生成标签（version / major.minor / latest）
       - name: Docker meta
         id: meta
@@ -51,11 +71,16 @@ jobs:
         with:
           images: ${{ env.IMAGE_NAME }}
           tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{version}},value=${{ env.VALID_VERSION }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ env.VALID_VERSION }}
             type=raw,value=latest
+          # 确保版本号格式正确
+          flavor: |
+            latest=false
+            prefix=
+            suffix=
 
-      # 构建并推送（含缓存加速）
+          # 构建并推送（含缓存加速）
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -67,3 +92,9 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # 添加构建参数和更好的错误处理
+          build-args: |
+            NODE_ENV=production
+          # 启用详细日志
+          provenance: false
+          # 添加构建失败时的调试信息
