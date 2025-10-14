@@ -1,18 +1,20 @@
 # 前端构建阶段
-FROM node:18-alpine AS frontend-builder
+FROM --platform=linux/amd64 node:18-alpine AS frontend-builder
 WORKDIR /app/frontend
 
 # 设置npm镜像源加速构建
 RUN npm config set registry https://registry.npmmirror.com
 
+# 先复制package文件并安装依赖
 COPY frontend/package*.json ./
-RUN npm ci --only=production
+RUN npm install
 
+# 再复制源代码并构建
 COPY frontend/ ./
 RUN npm run build
 
 # 后端构建阶段
-FROM python:3.11-slim
+FROM --platform=linux/amd64 python:3.11-slim
 WORKDIR /app
 
 # 安装系统依赖（仅Python需要）
