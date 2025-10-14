@@ -19,8 +19,9 @@
 - ✅ 使用build:full脚本进行完整的TypeScript检查
 - ✅ 创建简化版Dockerfile（Dockerfile.simple）
 - ✅ 创建调试版Dockerfile（Dockerfile.debug）
+- ✅ 创建超基础版Dockerfile（Dockerfile.ultra-basic）- 极简构建流程，即使失败也能继续
 - ✅ 创建基础版Dockerfile（Dockerfile.basic）- 使用最简单的构建流程
-- ✅ 回退到基础版构建策略，避免复杂诊断逻辑
+- ✅ 回退到分层构建策略：超基础版 → 基础版 → 原始版
 
 ### 3. GitHub Actions改进
 - ✅ 添加构建重试机制（主要构建失败后尝试无缓存重试）
