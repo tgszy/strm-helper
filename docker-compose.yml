@@ -21,21 +21,22 @@ services:
     networks:
       - strm-net
 
-  frontend:
-    image: tgszy/strm-helper:latest
-    container_name: strm-frontend
-    restart: unless-stopped
-    command: frontend
-    ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app/frontend
-    environment:
-      - VITE_API_BASE=http://localhost:35455/api
-    depends_on:
-      - strm-api
-    networks:
-      - strm-net
+  # 前端开发服务（可选，仅开发环境使用）
+  # frontend:
+  #   image: tgszy/strm-helper:latest
+  #   container_name: strm-frontend
+  #   restart: unless-stopped
+  #   command: frontend
+  #   ports:
+  #     - "5173:5173"
+  #   volumes:
+  #     - ./frontend:/app/frontend
+  #   environment:
+  #     - VITE_API_BASE=http://localhost:35455/api
+  #   depends_on:
+  #     - strm-api
+  #   networks:
+  #     - strm-net
 
   redis:
     image: redis:7-alpine
