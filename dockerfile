@@ -1,5 +1,5 @@
 # 前端构建阶段
-FROM --platform=linux/amd64 node:18-alpine AS frontend-builder
+FROM node:18-alpine AS frontend-builder
 WORKDIR /app/frontend
 
 # 设置npm镜像源加速构建
@@ -14,7 +14,7 @@ COPY frontend/ ./
 RUN npm run build
 
 # 后端构建阶段
-FROM --platform=linux/amd64 python:3.11-slim
+FROM python:3.11-slim
 WORKDIR /app
 
 # 安装系统依赖（仅Python需要）
