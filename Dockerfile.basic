@@ -1,0 +1,47 @@
+# 基础版Dockerfile - 使用最简单的构建流程
+FROM node:20-alpine AS frontend-builder
+WORKDIR /app/frontend
+
+# 安装基本构建工具
+RUN apk add --no-cache python3 make g++
+
+# 设置npm镜像源
+RUN npm config set registry https://registry.npmmirror.com
+
+# 复制package文件并安装依赖
+COPY frontend/package*.json ./
+RUN npm install --legacy-peer-deps
+
+# 复制源代码
+COPY frontend/ ./
+
+# 构建应用 - 使用最简单的构建命令
+RUN echo "Starting build..." && \
+    npm run build && \
+    echo "Build completed" && \
+    ls -la dist/
+
+# 后端构建阶段
+FROM python:3.11-slim
+WORKDIR /app
+
+# 安装Python依赖
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential curl && rm -rf /var/lib/apt/lists/*
+
+# 复制Python依赖和代码
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY backend ./backend
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
+
+# 复制前端构建结果
+COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
+COPY frontend/package.json ./frontend/
+
+VOLUME ["/app/data", "/media", "/strm"]
+EXPOSE 35455
+
+ENTRYPOINT ["./entrypoint.sh"]
