@@ -45,18 +45,35 @@ STRM Helper 是一个专为媒体库设计的自动化管理工具，主要解�
 ### Docker Compose 安装（推荐）
 
 ```bash
-# 克隆项目
-git clone https://github.com/tgszy/strm-helper.git
-cd strm-helper
+version: "3.9"
+services:
+  strm-api:
+    image: tgszy/strm-helper:latest
+    container_name: strm-helper
+    restart: unless-stopped
+    ports:
+      - "35455:35455"
+    volumes:
+      - ./data:/app/data
+      - ./media:/media
+      - ./strm:/strm
+    environment:
+      - TZ=Asia/Shanghai
+      - REDIS_URL=redis://redis:6379/0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:35455/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
-# 创建必要的目录
-mkdir -p data media strm
+  redis:
+    image: redis:7-alpine
+    container_name: strm-redis
+    restart: unless-stopped
 
-# 启动服务
-docker-compose up -d
+# 如需 worker/beat/flower 可继续追加，此处给出最小可用集
 
-# 查看服务状态
-docker-compose ps
 
 # 访问服务
 # API文档: http://localhost:35455/docs
