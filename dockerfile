@@ -32,24 +32,24 @@ RUN echo "Validating source code..." && \
     echo "Checking Vite config..." && \
     test -f vite.config.ts && echo "✅ vite.config.ts exists" || echo "⚠️  vite.config.ts missing"
 
-# 构建前端应用（带更好的错误处理）
-RUN echo "Starting frontend build..." && \
-    npm run build && \
+# 构建前端应用（使用完整的TypeScript检查和构建）
+RUN echo "Starting frontend build with TypeScript check..." && \
+    npm run build:full && \
     echo "✅ Build completed successfully" && \
     ls -la dist/ && \
     echo "Build artifacts:" && \
     find dist/ -type f -name "*.js" -o -name "*.css" -o -name "*.html" | head -10 || \
-    (echo "❌ Build failed, attempting fallback strategy..." && \
-     echo "Trying direct Vite build..." && \
-     npx vite build && \
-     echo "✅ Fallback build completed" && \
+    (echo "❌ build:full failed, trying standard build..." && \
+     npm run build && \
+     echo "✅ Standard build completed" && \
      ls -la dist/ && \
      echo "Build artifacts:" && \
      find dist/ -type f -name "*.js" -o -name "*.css" -o -name "*.html" | head -10 || \
-     (echo "❌ Fallback build also failed, providing diagnostics..." && \
+     (echo "❌ Both builds failed, providing diagnostics..." && \
       echo "Node version: $(node --version)" && \
       echo "NPM version: $(npm --version)" && \
-      echo "Available scripts: $(npm run | grep -E '^  (build|dev)')" && \
+      echo "Available scripts: $(npm run | grep -E '^  (build|dev|build:full)')" && \
+      echo "TypeScript check: $(npm run type-check || echo 'failed')" && \
       echo "Vite binary location: $(which vite || echo 'not found')" && \
       echo "Vue plugin location: $(find node_modules -name '*vue*plugin*' -type d | head -1)" && \
       exit 1))
