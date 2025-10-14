@@ -25,7 +25,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile.basic
+          file: ./Dockerfile.ultra-basic
           platforms: linux/amd64
           push: false
           tags: ${{ env.IMAGE_NAME }}:test
@@ -84,39 +84,29 @@ jobs:
             prefix=
             suffix=
 
-          # 构建并推送（使用基础版Dockerfile）
+          # 构建并推送（使用超基础版Dockerfile）
       - name: Build and push Docker image
-        id: docker_build
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.ultra-basic
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+        timeout-minutes: 30
+
+      # 如果超基础版构建失败，尝试基础版
+      - name: Retry with basic Dockerfile
+        if: failure() && steps.build.outcome == 'failure'
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile.basic
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-args: |
-            NODE_ENV=production
-          provenance: false
-        continue-on-error: true
-        timeout-minutes: 20
-
-      # 如果基础版构建失败，尝试原始版
-      - name: Retry with original Dockerfile
-        if: steps.docker_build.outcome == 'failure'
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./dockerfile
-          platforms: linux/amd64
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          no-cache: true
-          build-args: |
-            NODE_ENV=production
-          provenance: false
-        timeout-minutes: 25
+        timeout-minutes: 30
           # 添加构建失败时的调试信息
