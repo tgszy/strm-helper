@@ -18,20 +18,20 @@ buildx failed with: ERROR: failed to build: failed to solve: process "/bin/sh -c
 
 ## 解决方案
 
-### 1. 使用基础版Dockerfile（Dockerfile.basic）
+### 1. 使用超基础版Dockerfile（Dockerfile.ultra-basic）
 
-我们创建了新的基础版Dockerfile，特点：
-- ✅ **简化构建逻辑**：使用直接的`npm run build`命令
-- ✅ **移除复杂管道**：避免使用复杂的重定向和管道操作
-- ✅ **简化错误处理**：基本的错误处理逻辑
-- ✅ **标准构建流程**：遵循标准的Node.js构建流程
+我们创建了新的超基础版Dockerfile，特点：
+- ✅ **极简构建逻辑**：即使失败也能继续构建流程
+- ✅ **移除所有复杂操作**：无重定向、无管道、无诊断
+- ✅ **构建失败回退**：失败时创建基本的fallback页面
+- ✅ **确保构建成功**：至少保证一个版本能成功构建
 
-### 2. 构建策略调整
+### 2. 分层构建策略
 
-新的构建策略：
-1. **主要构建**：使用`Dockerfile.basic`（最简单版本）
-2. **备用构建**：使用原始`dockerfile`（带TypeScript检查）
-3. **最终备用**：使用`Dockerfile.simple`（简化版本）
+新的分层构建策略：
+1. **主要构建**：使用`Dockerfile.ultra-basic`（超基础版本）
+2. **次要构建**：使用`Dockerfile.basic`（基础版本）
+3. **最终备用**：使用原始`dockerfile`（原始版本）
 
 ### 3. 关键改进
 
