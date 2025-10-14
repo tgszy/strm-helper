@@ -12,6 +12,28 @@ services:
     environment:
       - TZ=Asia/Shanghai
       - REDIS_URL=redis://redis:6379/0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:35455/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - strm-net
+
+  frontend:
+    image: tgszy/strm-helper:latest
+    container_name: strm-frontend
+    restart: unless-stopped
+    command: frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app/frontend
+    environment:
+      - VITE_API_BASE=http://localhost:35455/api
+    depends_on:
+      - strm-api
     networks:
       - strm-net
 
@@ -26,7 +48,24 @@ services:
     image: tgszy/strm-helper:latest
     container_name: strm-worker
     restart: unless-stopped
-    command: celery -A backend.celery_app.celery worker -l info -Q default -c 4
+    command: worker
+    volumes:
+      - ./data:/app/data
+      - ./media:/media
+      - ./strm:/strm
+    environment:
+      - TZ=Asia/Shanghai
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+    networks:
+      - strm-net
+
+  beat:
+    image: tgszy/strm-helper:latest
+    container_name: strm-beat
+    restart: unless-stopped
+    command: beat
     volumes:
       - ./data:/app/data
       - ./media:/media
