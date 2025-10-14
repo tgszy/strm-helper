@@ -16,13 +16,15 @@ buildx failed with: ERROR: failed to build: failed to solve: process "/bin/sh -c
 - **简化构建逻辑**：移除所有复杂诊断、重定向和管道操作
 
 ### 2. Dockerfile优化
-- ✅ **创建基础版Dockerfile** (`Dockerfile.basic`)：
-  - 使用最简单的`npm run build`命令
-  - 移除复杂的诊断和重定向操作
-  - 标准的Node.js构建流程
+
+- ✅ **创建超基础版Dockerfile.ultra-basic** (`Dockerfile.ultra-basic`)：
+  - 极简构建流程：即使失败也能继续构建
+  - 移除所有复杂操作：无诊断、无重定向、无管道
+  - 构建失败回退：创建基本fallback页面
   
 - ✅ **保留其他版本作为备用**：
-  - `dockerfile`：原始版本（带TypeScript检查）
+  - `Dockerfile.basic`：基础版构建流程
+  - `Dockerfile`：原始版本（带TypeScript检查）
   - `Dockerfile.simple`：简化版本
   - `Dockerfile.debug`：调试版本（复杂诊断）
 
