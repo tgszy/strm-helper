@@ -9,26 +9,28 @@ buildx failed with: ERROR: failed to build: failed to solve: process "/bin/sh -c
 
 ## 🔧 修复措施
 
-### 1. GitHub Actions配置修复
-- ✅ **修复timeout参数错误**：将无效的`timeout`参数改为`timeout-minutes`
-- ✅ **添加构建重试机制**：主要构建失败后自动尝试备用构建策略
-- ✅ **使用简化版Dockerfile**：减少构建复杂性，提高成功率
+### 🔧 核心修复
+- **修复timeout参数错误**：将无效的`timeout`参数改为`timeout-minutes`
+- **使用基础版Dockerfile**：创建`Dockerfile.basic`作为最简单的主要构建文件
+- **优化构建策略**：基础版 → 原始版 → 简化版的分层重试机制
+- **简化构建逻辑**：移除复杂的诊断和重定向操作
 
 ### 2. Dockerfile优化
-- ✅ **创建简化版Dockerfile** (`Dockerfile.simple`)：
-  - 使用更简单的错误处理逻辑
-  - 优先使用`npm run build:full`（包含TypeScript检查）
-  - 失败后回退到标准构建
+- ✅ **创建基础版Dockerfile** (`Dockerfile.basic`)：
+  - 使用最简单的`npm run build`命令
+  - 移除复杂的诊断和重定向操作
+  - 标准的Node.js构建流程
   
-- ✅ **创建调试版Dockerfile** (`Dockerfile.debug`)：
-  - 提供详细的步骤化构建过程
-  - 全面的环境诊断信息
-  - 完整的错误日志捕获
+- ✅ **保留其他版本作为备用**：
+  - `dockerfile`：原始版本（带TypeScript检查）
+  - `Dockerfile.simple`：简化版本
+  - `Dockerfile.debug`：调试版本（复杂诊断）
 
 ### 3. 构建策略改进
-- ✅ **使用build:full脚本**：优先使用包含TypeScript检查的完整构建
-- ✅ **多层容错机制**：主要构建 → 标准构建 → 详细诊断
-- ✅ **依赖验证**：构建前验证关键依赖包
+- ✅ **分层构建策略**：基础版 → 原始版 → 简化版
+- ✅ **简化优先**：优先使用最简单的构建流程
+- ✅ **渐进式复杂度**：从简单到复杂逐步尝试
+- ✅ **避免过度诊断**：移除复杂的诊断和重定向操作
 
 ### 4. 测试工具开发
 - ✅ **快速测试脚本**：本地验证构建过程
