@@ -21,4 +21,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: tgszy/strm-helper:m3-rest   # ← 2. 改用户名
+          tags: tgszy/strm-helper:latest  # ← 2. 改用户名
