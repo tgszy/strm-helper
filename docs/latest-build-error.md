@@ -16,6 +16,14 @@ buildx failed with: ERROR: failed to build: failed to solve: process "/bin/sh -c
 2. **多重管道和重定向**：使用了复杂的管道和重定向操作
 3. **错误处理过于复杂**：嵌套的错误处理逻辑导致构建失败
 
+## 修复记录
+
+✅ **已修复**：更新`Dockerfile.ultra-basic`中的requirements.txt路径
+- 从：`COPY backend/requirements.txt ./`
+- 改为：`COPY requirements.txt ./`
+
+文件实际位置：`/requirements.txt`（根目录）
+
 ## 解决方案
 
 ### 1. 使用超基础版Dockerfile（Dockerfile.ultra-basic）
