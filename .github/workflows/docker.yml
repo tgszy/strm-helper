@@ -25,19 +25,16 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile
+          file: ./Dockerfile.simple
           platforms: linux/amd64
           push: false
           tags: ${{ env.IMAGE_NAME }}:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          # 添加构建参数和错误处理
           build-args: |
             NODE_ENV=production
-          # 启用详细日志
           provenance: false
-          # 设置构建超时时间
-          timeout: 20m
+        timeout-minutes: 20
 
   build-and-push:
     runs-on: ubuntu-latest
@@ -87,43 +84,39 @@ jobs:
             prefix=
             suffix=
 
-          # 构建并推送（含缓存加速）
+          # 构建并推送（使用简化版Dockerfile）
       - name: Build and push Docker image
         id: docker_build
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile
-          platforms: linux/amd64  # 按需保留
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}   # ★ 修复：必须存在
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          # 添加构建参数和更好的错误处理
-          build-args: |
-            NODE_ENV=production
-          # 启用详细日志和更好的错误处理
-          provenance: false
-          # 设置构建超时时间
-          timeout: 20m
-        continue-on-error: true
-
-      # 如果主要构建失败，尝试备用构建策略
-      - name: Retry build with clean cache
-        if: steps.docker_build.outcome == 'failure'
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
+          file: ./Dockerfile.simple
           platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # 不使用缓存，完全重新构建
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NODE_ENV=production
+          provenance: false
+        continue-on-error: true
+        timeout-minutes: 20
+
+      # 如果简化版构建失败，尝试调试版
+      - name: Retry with debug Dockerfile
+        if: steps.docker_build.outcome == 'failure'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.debug
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           no-cache: true
           build-args: |
             NODE_ENV=production
           provenance: false
-          timeout: 25m
+        timeout-minutes: 25
           # 添加构建失败时的调试信息
