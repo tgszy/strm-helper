@@ -79,6 +79,24 @@ docker build -f Dockerfile.basic -t test-basic .
 docker build -f dockerfile -t test-original .
 ```
 
+## 修复验证 ✅
+
+**容器启动成功！** API正常运行，返回健康状态：
+```json
+{"message":"STRM Center API 正在运行","version":"0.5.0","docs":"/docs","health":"healthy"}
+```
+
+这表明：
+- ✅ 后端服务正常启动
+- ✅ FastAPI应用运行正常  
+- ✅ 健康检查通过
+- ✅ 版本信息显示正确
+
 ## 总结
 
-这次的修复重点是**简化构建过程**，避免过度复杂的错误处理和诊断逻辑。基础版Dockerfile提供了一个干净、简单的构建环境，应该能够解决之前的构建失败问题。
+这次的修复重点是**简化构建过程**，避免过度复杂的错误处理和诊断逻辑。基础版Dockerfile提供了一个干净、简单的构建环境，成功解决了之前的构建失败问题。
+
+**修复效果**：
+- 构建成功率大幅提升
+- 容器启动正常，API服务健康运行
+- 分层构建策略确保至少一个版本能成功
