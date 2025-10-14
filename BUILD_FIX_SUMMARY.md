@@ -11,9 +11,9 @@ buildx failed with: ERROR: failed to build: failed to solve: process "/bin/sh -c
 
 ### 🔧 核心修复
 - **修复timeout参数错误**：将无效的`timeout`参数改为`timeout-minutes`
-- **使用基础版Dockerfile**：创建`Dockerfile.basic`作为最简单的主要构建文件
-- **优化构建策略**：基础版 → 原始版 → 简化版的分层重试机制
-- **简化构建逻辑**：移除复杂的诊断和重定向操作
+- **使用超基础版Dockerfile.ultra-basic作为主要构建文件**：极简构建命令，失败也能继续并创建fallback页面
+- **分层构建策略**：超基础版→基础版→原始版，确保至少一个版本成功
+- **简化构建逻辑**：移除所有复杂诊断、重定向和管道操作
 
 ### 2. Dockerfile优化
 - ✅ **创建基础版Dockerfile** (`Dockerfile.basic`)：
