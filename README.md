@@ -120,10 +120,15 @@ strm organize --strm-root /tmp/strm --output ~/StrmOrg --rules rules/classify.ya
 现在你的应用提供以下接口：
 
 1.API 文档 ： http://localhost:35455/docs
+
 2.替代文档 ： http://localhost:35455/redoc
+
 3.健康检查 ： http://localhost:35455/health
+
 4.API 信息 ： http://localhost:35455/api/info
+
 5.根路径 ： http://localhost:35455/
+
 
 ## 📁 目录结构
 
