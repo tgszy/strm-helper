@@ -46,7 +46,7 @@ STRM Helper 是一个专为媒体库设计的自动化管理工具，主要解�
 
 ```bash
 # 克隆项目
-git clone https://github.com/your-username/strm-helper.git
+git clone https://github.com/tgszy/strm-helper.git
 cd strm-helper
 
 # 创建必要的目录
