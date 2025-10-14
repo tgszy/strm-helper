@@ -40,7 +40,7 @@ jobs:
 
   # ====== Docker 多阶段构建 & 推送 ======
   docker:
-    needs: [fe-test, be-test]   # 可选：等测试通过再构建
+    #needs: [fe-test, be-test]   # 可选：等测试通过再构建
     runs-on: ubuntu-latest
     steps:
       - name: Checkout（含 .git 供 build 读版本）
