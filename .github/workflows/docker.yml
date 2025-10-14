@@ -25,7 +25,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile.simple
+          file: ./Dockerfile.basic
           platforms: linux/amd64
           push: false
           tags: ${{ env.IMAGE_NAME }}:test
@@ -84,13 +84,13 @@ jobs:
             prefix=
             suffix=
 
-          # 构建并推送（使用简化版Dockerfile）
+          # 构建并推送（使用基础版Dockerfile）
       - name: Build and push Docker image
         id: docker_build
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile.simple
+          file: ./Dockerfile.basic
           platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
@@ -103,13 +103,13 @@ jobs:
         continue-on-error: true
         timeout-minutes: 20
 
-      # 如果简化版构建失败，尝试调试版
-      - name: Retry with debug Dockerfile
+      # 如果基础版构建失败，尝试原始版
+      - name: Retry with original Dockerfile
         if: steps.docker_build.outcome == 'failure'
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile.debug
+          file: ./dockerfile
           platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
