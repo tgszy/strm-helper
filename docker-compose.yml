@@ -1,10 +1,12 @@
+version: "3.9"
+
 services:
   strm-api:
     image: tgszy/strm-helper:latest
     container_name: strm-helper
     restart: unless-stopped
     ports:
-      - "35455:35455"                 # ★ 内外端口一致
+      - "35455:35455"
     volumes:
       - ./data:/app/data
       - ./media:/media
@@ -12,6 +14,7 @@ services:
     environment:
       - TZ=Asia/Shanghai
       - REDIS_URL=redis://redis:6379/0
+    # 若 /health 未实现，先注释掉下面 6 行
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:35455/health"]
       interval: 30s
@@ -19,31 +22,14 @@ services:
       retries: 3
       start_period: 40s
     networks:
-      - strm-net
-
-  # 前端开发服务（可选，仅开发环境使用）
-  # frontend:
-  #   image: tgszy/strm-helper:latest
-  #   container_name: strm-frontend
-  #   restart: unless-stopped
-  #   command: frontend
-  #   ports:
-  #     - "5173:5173"
-  #   volumes:
-  #     - ./frontend:/app/frontend
-  #   environment:
-  #     - VITE_API_BASE=http://localhost:35455/api
-  #   depends_on:
-  #     - strm-api
-  #   networks:
-  #     - strm-net
+      - strm-helper-net
 
   redis:
     image: redis:7-alpine
     container_name: strm-redis
     restart: unless-stopped
     networks:
-      - strm-net
+      - strm-helper-net
 
   worker:
     image: tgszy/strm-helper:latest
@@ -60,7 +46,7 @@ services:
     depends_on:
       - redis
     networks:
-      - strm-net
+      - strm-helper-net
 
   beat:
     image: tgszy/strm-helper:latest
@@ -77,7 +63,7 @@ services:
     depends_on:
       - redis
     networks:
-      - strm-net
+      - strm-helper-net
 
   flower:
     image: mher/flower:2.0
@@ -89,8 +75,8 @@ services:
     depends_on:
       - redis
     networks:
-      - strm-net
+      - strm-helper-net
 
 networks:
-  strm-net:
+  strm-helper-net:
     driver: bridge
