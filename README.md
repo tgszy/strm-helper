@@ -116,7 +116,52 @@ docker buildx build --platform linux/amd64 -t strm-helper .
 **注意**：由于前端构建依赖，建议使用amd64架构构建。如果你遇到npm相关错误，请确保：
 1. 前端目录包含完整的package.json文件
 2. 网络连接正常，能够访问npm镜像源
-3. 使用推荐的Node.js 18版本进行构建
+3. 使用推荐的Node.js 20版本进行构建
+4. 依赖版本号正确，如@element-plus/icons-vue应使用^2.3.1版本
+5. TypeScript配置完整，包含tsconfig.json文件
+
+**构建故障排除**：项目包含详细的[构建故障排除文档](docs/build-troubleshooting.md)，涵盖常见npm构建错误及解决方案。
+
+### 🏷️ 版本号规范
+
+创建 GitHub Release 时，请使用有效的语义化版本号格式：
+
+- **有效格式**：`1.0.0`、`1.2.3`、`2.10.15`（三段位，MAJOR.MINOR.PATCH）
+- **无效格式**：`v1.0.0.14`（四段位）、`1.0`（缺少修订号）
+- **可接受格式**：`v1.0.0`（'v'前缀会被自动移除）
+
+详细版本号规范请参考 [版本号规范文档](docs/versioning.md)。
+
+### 🔧 构建故障排除
+
+**如果遇到前端构建错误**，可以尝试以下解决方案：
+
+1. **依赖版本冲突**：
+   ```bash
+   cd frontend
+   rm -rf node_modules package-lock.json
+   npm install --legacy-peer-deps
+   ```
+
+2. **TypeScript编译错误**：
+   - 确保tsconfig.json文件存在且配置正确
+   - 使用 `npm run build` 而不是 `npm run build:full` 跳过类型检查
+
+3. **vue-tsc版本问题**：
+   - 已将vue-tsc升级到^2.0.0版本解决兼容性问题
+   - 如仍有问题，可尝试降级到^1.8.0版本
+
+4. **网络问题**：
+   - 使用国内镜像源：`npm config set registry https://registry.npmmirror.com`
+   - 或使用淘宝镜像：`npm config set registry https://registry.npm.taobao.org`
+
+**测试构建**：项目包含测试脚本 `test-frontend-build.sh`，可用于验证前端构建是否正常。
+
+5. **版本号格式错误**：
+   - 确保GitHub Release标签使用有效的语义化版本格式
+   - 有效格式：`1.0.0`、`1.2.3`（三段位，MAJOR.MINOR.PATCH）
+   - 无效格式：`v1.0.0.14`（四段位）、`1.0`（缺少修订号）
+   - 参考：[语义化版本规范](https://semver.org/) 和 [项目版本号文档](docs/versioning.md)
 
 ### 本地开发安装
 
