@@ -2,6 +2,24 @@
 
 一个现代化的媒体库管理工具，支持多源STRM文件生成、智能分类整理和Web界面管理。
 
+## 📖 项目介绍
+
+STRM Helper 是一个专为媒体库设计的自动化管理工具，主要解决以下问题：
+
+- **多源媒体文件整合**：支持本地文件、Alist网盘、115网盘等多种数据源
+- **智能STRM文件生成**：自动生成可供Emby、Jellyfin等媒体服务器使用的STRM文件
+- **自动化分类整理**：基于TMDB元数据智能识别电影、电视剧，自动分类归档
+- **Web可视化操作**：提供现代化的Web界面，支持批量操作和任务监控
+- **插件化架构**：支持自定义数据源插件，易于扩展新的媒体源
+
+### 🎯 适用场景
+
+- 拥有大量分散在不同位置的媒体文件需要统一管理
+- 希望通过STRM文件方式让媒体服务器访问远程资源
+- 需要自动化整理和分类媒体库
+- 希望通过Web界面管理整个媒体库整理流程
+- 开发者希望集成媒体库管理功能到自己的系统中
+
 ## 🌟 功能特性
 
 ### 核心功能
@@ -31,12 +49,40 @@
 git clone https://github.com/your-username/strm-helper.git
 cd strm-helper
 
+# 创建必要的目录
+mkdir -p data media strm
+
 # 启动服务
 docker-compose up -d
 
+# 查看服务状态
+docker-compose ps
+
 # 访问服务
-# Web界面: http://localhost:5173
 # API文档: http://localhost:35455/docs
+# 任务监控: http://localhost:5555 (Flower)
+
+# 查看日志
+docker-compose logs -f strm-api
+docker-compose logs -f worker
+```
+
+### 前端开发环境（可选）
+
+如果你想在开发环境中使用前端界面：
+
+```bash
+# 进入前端目录
+cd frontend
+
+# 安装依赖
+npm install
+
+# 启动开发服务器
+npm run dev
+
+# 访问前端界面
+# Web界面: http://localhost:5173
 ```
 
 ### Docker 单独安装
@@ -113,9 +159,6 @@ strm organize --strm-root /tmp/strm --output ~/StrmOrg --rules rules/classify.ya
 - `GET /api/settings` - 获取配置信息
 - `PUT /api/settings` - 更新配置信息
 
-### WebSocket接口
-- `ws://localhost:35455/api/ws` - 实时任务进度推送
-
 ### 🎯 可以访问的端点
 现在你的应用提供以下接口：
 
@@ -129,6 +172,8 @@ strm organize --strm-root /tmp/strm --output ~/StrmOrg --rules rules/classify.ya
 
 5.根路径 ： http://localhost:35455/
 
+### WebSocket接口
+- `ws://localhost:35455/api/ws` - 实时任务进度推送
 
 ## 📁 目录结构
 
@@ -148,6 +193,42 @@ strm-helper/
 ├── docker-compose.yml
 ├── dockerfile
 └── requirements.txt
+```
+
+## 🏗️ 系统架构
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Web 前端 (Vue3 + Element Plus)            │
+│                    http://localhost:5173                    │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────────────────┐
+│                  API 网关 (FastAPI)                         │
+│                  http://localhost:35455                     │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐         │
+│  │   REST API  │ │  WebSocket  │ │   健康检查  │         │
+│  └─────────────┘ └─────────────┘ └─────────────┘         │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────────────────┐
+│                  业务逻辑层                                │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐         │
+│  │   扫描器    │ │   整理器    │ │   重命名器  │         │
+│  └─────────────┘ └─────────────┘ └─────────────┘         │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────────────────┐
+│                  插件系统                                    │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐         │
+│  │   本地插件  │ │  Alist插件  │ │  115网盘插件 │         │
+│  └─────────────┘ └─────────────┘ └─────────────┘         │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────────────────┐
+│                  异步任务队列 (Celery + Redis)              │
+│                  任务监控 (Flower)                        │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ## ⚙️ 环境变量
@@ -186,3 +267,50 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 ## 🆘 支持
 
 如有问题，请在 GitHub Issues 中提问或联系维护者。
+
+## ✅ 快速验证
+
+安装完成后，可以通过以下方式验证服务是否正常运行：
+
+### 1. 检查容器状态
+```bash
+docker-compose ps
+# 应该看到所有服务都是 Up 状态
+```
+
+### 2. 测试API接口
+```bash
+# 测试健康检查
+curl http://localhost:35455/health
+# 应该返回: {"status":"ok"}
+
+# 测试API信息
+curl http://localhost:35455/api/info
+# 应该返回API版本和功能信息
+```
+
+### 3. 访问Web界面
+- 打开浏览器访问 http://localhost:5173
+- 应该能看到STRM Helper的Web管理界面
+
+### 4. 查看日志
+```bash
+# 查看后端日志
+docker-compose logs strm-api
+
+# 查看前端日志
+docker-compose logs frontend
+
+# 查看工作进程日志
+docker-compose logs worker
+```
+
+如果以上检查都正常，说明STRM Helper已经成功安装并可以正常使用了！
+
+## 🔗 相关链接
+
+- [FastAPI 文档](https://fastapi.tiangolo.com/)
+- [Vue3 文档](https://v3.vuejs.org/)
+- [Element Plus 文档](https://element-plus.org/)
+- [Celery 文档](https://docs.celeryproject.org/)
+- [Docker 文档](https://docs.docker.com/)
