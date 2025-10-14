@@ -1,0 +1,11 @@
+version: "3.9"
+services:
+  api:
+    build: .
+    image: your-dockerhub-user/strm-helper:m3-rest
+    container_name: strm-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
