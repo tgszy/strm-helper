@@ -11,7 +11,19 @@ RUN npm install --legacy-peer-deps
 
 # 再复制源代码并构建
 COPY frontend/ ./
-RUN npm run build
+# 添加调试信息，检查文件结构
+RUN ls -la && \
+    echo "TypeScript config files:" && \
+    ls -la tsconfig*.json || echo "No tsconfig files found" && \
+    echo "Package.json contents:" && \
+    cat package.json | grep -A 10 -B 10 scripts || true
+
+# 构建并捕获错误信息
+RUN npm run build || (echo "Build failed, checking for errors..." && \
+    find . -name "*.log" -type f -exec echo "=== Log file: {} ===" \; -exec cat {} \; && \
+    echo "Checking TypeScript errors..." && \
+    npm run type-check || true && \
+    exit 1)
 
 # 后端构建阶段
 FROM python:3.11-slim
