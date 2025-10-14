@@ -1,0 +1,38 @@
+# 最小化前端构建测试Dockerfile
+# 用于快速验证前端构建环境
+
+FROM node:20-alpine AS frontend-test
+WORKDIR /app
+
+# 安装基本工具
+RUN apk add --no-cache python3 make g++
+
+# 设置npm镜像
+RUN npm config set registry https://registry.npmmirror.com
+
+# 复制并安装依赖
+COPY frontend/package*.json ./
+RUN npm install --legacy-peer-deps
+
+# 复制源代码
+COPY frontend/ ./
+
+# 验证环境
+RUN echo "=== Environment Check ===" && \
+    node --version && \
+    npm --version && \
+    echo "=== Dependencies Check ===" && \
+    npm list --depth=0 && \
+    echo "=== Source Check ===" && \
+    ls -la src/ && \
+    echo "=== Config Check ===" && \
+    ls -la *.json *.ts
+
+# 执行构建
+RUN echo "=== Starting Build ===" && \
+    npm run build && \
+    echo "=== Build Success ===" && \
+    ls -la dist/
+
+# 如果构建失败，提供诊断
+RUN echo "Build completed successfully" || (echo "Build failed - see logs above" && exit 1)
