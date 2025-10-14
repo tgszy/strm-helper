@@ -1,11 +1,10 @@
-__pycache__/
-*.pyc
-*.strm
-.idea/
-.vscode/
 # Python 缓存
 __pycache__/
 *.pyc
+
 # IDE
 .vscode/
 .idea/
+
+# STRM 产物
+*.strm
