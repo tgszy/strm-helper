@@ -2,28 +2,27 @@
 FROM node:20-alpine AS frontend-builder
 WORKDIR /app/frontend
 
+# 安装必要的工具
+RUN apk add --no-cache python3 make g++
+
 # 设置npm镜像源加速构建
 RUN npm config set registry https://registry.npmmirror.com
 
 # 先复制package文件并安装依赖
 COPY frontend/package*.json ./
-RUN npm install --legacy-peer-deps
+RUN npm install --legacy-peer-deps && \
+    echo "Dependencies installed successfully" && \
+    ls -la node_modules/@vitejs/plugin-vue && \
+    ls -la node_modules/vite
 
 # 再复制源代码并构建
 COPY frontend/ ./
-# 添加调试信息，检查文件结构
-RUN ls -la && \
-    echo "TypeScript config files:" && \
-    ls -la tsconfig*.json || echo "No tsconfig files found" && \
-    echo "Package.json contents:" && \
-    cat package.json | grep -A 10 -B 10 scripts || true
 
-# 构建并捕获错误信息
-RUN npm run build || (echo "Build failed, checking for errors..." && \
-    find . -name "*.log" -type f -exec echo "=== Log file: {} ===" \; -exec cat {} \; && \
-    echo "Checking TypeScript errors..." && \
-    npm run type-check || true && \
-    exit 1)
+# 构建前端应用
+RUN echo "Building frontend application..." && \
+    npm run build && \
+    echo "Build completed successfully" && \
+    ls -la dist/
 
 # 后端构建阶段
 FROM python:3.11-slim
