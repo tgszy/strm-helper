@@ -19,13 +19,16 @@
 - ✅ 使用build:full脚本进行完整的TypeScript检查
 - ✅ 创建简化版Dockerfile（Dockerfile.simple）
 - ✅ 创建调试版Dockerfile（Dockerfile.debug）
+- ✅ 创建基础版Dockerfile（Dockerfile.basic）- 使用最简单的构建流程
+- ✅ 回退到基础版构建策略，避免复杂诊断逻辑
 
 ### 3. GitHub Actions改进
 - ✅ 添加构建重试机制（主要构建失败后尝试无缓存重试）
 - ✅ 增加构建超时时间（20-25分钟）
 - ✅ 为测试构建添加相同的错误处理配置
 - ✅ 修复timeout参数错误（使用timeout-minutes替代timeout）
-- ✅ 使用简化版Dockerfile作为主要构建文件
+- ✅ 使用基础版Dockerfile作为主要构建文件（最简单的构建流程）
+- ✅ 优化构建策略：基础版 → 原始版 → 简化版
 
 ### 4. 诊断工具
 - ✅ 创建前端构建环境诊断脚本（diagnose-frontend-build.js）
