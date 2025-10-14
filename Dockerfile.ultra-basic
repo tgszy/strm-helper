@@ -38,17 +38,18 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 复制后端代码
 COPY backend/ ./backend/
 
+# 复制入口脚本
+COPY entrypoint.sh ./
+RUN chmod +x entrypoint.sh
+
 # 复制前端构建结果（无论构建是否成功）
 COPY --from=frontend-builder /app/frontend/dist ./backend/static/
 
 # 创建必要的目录
-RUN mkdir -p ./backend/logs ./backend/config
-
-# 设置工作目录
-WORKDIR /app/backend
+RUN mkdir -p ./backend/logs ./backend/config ./data
 
 # 暴露端口
 EXPOSE 35455
 
 # 运行应用
-CMD ["python", "app.py"]
+CMD ["./entrypoint.sh"]
