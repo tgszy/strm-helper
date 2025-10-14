@@ -24,18 +24,19 @@ jobs:
         working-directory: frontend
 
   # ====== 可选：后端单元测试 ======
-  be-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: 'pip'
-      - run: pip install -r requirements.txt
-      - run: pytest backend/tests
-        env:
-          REDIS_URL: redis://localhost:6379/0
+be-test:
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+    - run: pip install -r requirements.txt
+    - run: pytest backend/tests
+      env:
+        REDIS_URL: redis://fake:6379/0    # 假地址，单元测试里 mock 掉
+        DATABASE_URL: sqlite+aiosqlite:///:memory:  # 内存库
 
   # ====== Docker 多阶段构建 & 推送 ======
   docker:
