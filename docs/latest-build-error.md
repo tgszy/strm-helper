@@ -18,11 +18,15 @@ buildx failed with: ERROR: failed to build: failed to solve: process "/bin/sh -c
 
 ## 修复记录
 
-✅ **已修复**：更新`Dockerfile.ultra-basic`中的requirements.txt路径
+✅ **已修复1**：更新`Dockerfile.ultra-basic`中的requirements.txt路径
 - 从：`COPY backend/requirements.txt ./`
 - 改为：`COPY requirements.txt ./`
+- 文件实际位置：`/requirements.txt`（根目录）
 
-文件实际位置：`/requirements.txt`（根目录）
+✅ **已修复2**：修正`Dockerfile.ultra-basic`中的入口命令
+- 从：`CMD ["python", "app.py"]`
+- 改为：`CMD ["./entrypoint.sh"]`
+- 原因：实际入口点是`backend.main:app`，通过entrypoint.sh启动
 
 ## 解决方案
 
