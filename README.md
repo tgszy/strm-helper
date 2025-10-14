@@ -101,6 +101,23 @@ docker run -d \
   tgszy/strm-helper:latest
 ```
 
+### Docker 镜像构建
+
+如果你想自己构建Docker镜像：
+
+```bash
+# 构建amd64架构的镜像（推荐）
+docker build -t strm-helper .
+
+# 或者使用buildx构建多平台镜像
+docker buildx build --platform linux/amd64 -t strm-helper .
+```
+
+**注意**：由于前端构建依赖，建议使用amd64架构构建。如果你遇到npm相关错误，请确保：
+1. 前端目录包含完整的package.json文件
+2. 网络连接正常，能够访问npm镜像源
+3. 使用推荐的Node.js 18版本进行构建
+
 ### 本地开发安装
 
 ```bash
