@@ -89,6 +89,7 @@ jobs:
 
           # 构建并推送（含缓存加速）
       - name: Build and push Docker image
+        id: docker_build
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -106,4 +107,23 @@ jobs:
           provenance: false
           # 设置构建超时时间
           timeout: 20m
+        continue-on-error: true
+
+      # 如果主要构建失败，尝试备用构建策略
+      - name: Retry build with clean cache
+        if: steps.docker_build.outcome == 'failure'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # 不使用缓存，完全重新构建
+          no-cache: true
+          build-args: |
+            NODE_ENV=production
+          provenance: false
+          timeout: 25m
           # 添加构建失败时的调试信息
