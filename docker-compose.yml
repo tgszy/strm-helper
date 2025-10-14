@@ -33,7 +33,7 @@ services:
       - ./strm:/strm
     environment:
       - TZ=Asia/Shanghai
-      - REDIS_URL=redis://6379/0
+      - REDIS_URL=redis://redis:6379/0
     depends_on:
       - redis
     networks:
