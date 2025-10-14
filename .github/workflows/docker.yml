@@ -1,112 +1,68 @@
-name: Docker Build & Release
+name: CI + Docker
 
 on:
   push:
-    branches: [ main, master ]
-    paths-ignore: [ 'docs/**', '*.md' ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, master ]
-  release:
-    types: [published]   # 仅在 GitHub Release 发布时触发
-
-env:
-  IMAGE_NAME: tgszy/strm-helper   # 你的 DockerHub 仓库
+    branches: [ main ]
+  workflow_dispatch:  # 手动触发按钮
 
 jobs:
-  test-build:
+  # ====== 可选：前端单元测试 ======
+  fe-test:
     runs-on: ubuntu-latest
-    if: github.event_name != 'release'
     steps:
       - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3      # Buildx 构建器
-      
-      # 测试构建（不推送）
-      - name: Test Docker build
-        uses: docker/build-push-action@v5
+      - uses: actions/setup-node@v4
         with:
-          context: .
-          file: ./Dockerfile.ultra-basic
-          platforms: linux/amd64
-          push: false
-          tags: ${{ env.IMAGE_NAME }}:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-args: |
-            NODE_ENV=production
-          provenance: false
-        timeout-minutes: 20
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --legacy-peer-deps
+        working-directory: frontend
+      - run: npm run test:unit
+        working-directory: frontend
 
-  build-and-push:
+  # ====== 可选：后端单元测试 ======
+  be-test:
     runs-on: ubuntu-latest
-    if: github.event_name == 'release'
     steps:
       - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v3        # 多架构虚拟化
-      - uses: docker/setup-buildx-action@v3      # Buildx 构建器
-      - uses: docker/login-action@v3
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - run: pip install -r requirements.txt
+      - run: pytest backend/tests
+        env:
+          REDIS_URL: redis://localhost:6379/0
+
+  # ====== Docker 多阶段构建 & 推送 ======
+  docker:
+    needs: [fe-test, be-test]   # 可选：等测试通过再构建
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout（含 .git 供 build 读版本）
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 验证版本号格式（修复语义化版本问题）
-      - name: Validate version format
-        run: |
-          # 获取发布版本号并清理格式
-          VERSION="${{ github.event.release.tag_name }}"
-          echo "Original version: $VERSION"
-          
-          # 移除前缀 'v' 如果存在
-          VERSION="${VERSION#v}"
-          
-          # 验证是否为有效的语义化版本（三段位）
-          if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Valid semver: $VERSION"
-            echo "VALID_VERSION=$VERSION" >> $GITHUB_ENV
-          else
-            echo "Invalid semver format: $VERSION"
-            echo "Expected format: MAJOR.MINOR.PATCH (e.g., 1.0.0)"
-            exit 1
-          fi
-
-      # 生成标签（version / major.minor / latest）
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.IMAGE_NAME }}
-          tags: |
-            type=semver,pattern={{version}},value=${{ env.VALID_VERSION }}
-            type=semver,pattern={{major}}.{{minor}},value=${{ env.VALID_VERSION }}
-            type=raw,value=latest
-          # 确保版本号格式正确
-          flavor: |
-            latest=false
-            prefix=
-            suffix=
-
-          # 构建并推送（使用超基础版Dockerfile）
-      - name: Build and push Docker image
-        id: build
+      - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile.ultra-basic
           platforms: linux/amd64
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-        timeout-minutes: 30
-
-      # 如果超基础版构建失败，尝试基础版
-      - name: Retry with basic Dockerfile
-        if: failure() && steps.build.outcome == 'failure'
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile.basic
-          platforms: linux/amd64
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-        timeout-minutes: 30
-          # 添加构建失败时的调试信息
+          tags: tgszy/strm-helper:latest
