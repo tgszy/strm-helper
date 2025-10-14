@@ -1,0 +1,52 @@
+# 测试前端构建的简化Dockerfile
+FROM node:20-alpine AS frontend-test
+WORKDIR /app/frontend
+
+# 安装必要的工具
+RUN apk add --no-cache python3 make g++
+
+# 设置npm镜像源
+RUN npm config set registry https://registry.npmmirror.com
+
+# 复制package文件
+COPY frontend/package*.json ./
+
+# 安装依赖并验证
+RUN npm install --legacy-peer-deps && \
+    echo "=== Dependency Installation Complete ===" && \
+    npm list vite && \
+    npm list @vitejs/plugin-vue && \
+    npm list vue
+
+# 复制源代码
+COPY frontend/ ./
+
+# 详细的环境检查
+RUN echo "=== Environment Check ===" && \
+    echo "Node version: $(node --version)" && \
+    echo "NPM version: $(npm --version)" && \
+    echo "Working directory: $(pwd)" && \
+    echo "Directory contents:" && ls -la && \
+    echo "TypeScript configs:" && ls -la tsconfig*.json && \
+    echo "Vite config validation:" && node -e "console.log('Vite config loaded successfully')" && \
+    cat vite.config.ts
+
+# 尝试构建
+RUN echo "=== Starting Build Process ===" && \
+    npm run build && \
+    echo "=== Build Completed Successfully ===" && \
+    ls -la dist/
+
+# 如果构建失败，提供详细的诊断信息
+RUN echo "Build process finished" || (echo "=== Build Failed - Full Diagnostic ===" && \
+    echo "1. Environment state:" && \
+    node --version && npm --version && \
+    echo "2. Package validation:" && \
+    node -e "const pkg = require('./package.json'); console.log('Package name:', pkg.name); console.log('Scripts:', Object.keys(pkg.scripts))" && \
+    echo "3. Dependency check:" && \
+    npm list --depth=0 && \
+    echo "4. Available executables:" && \
+    ls -la node_modules/.bin/ && \
+    echo "5. Trying direct Vite execution:" && \
+    node node_modules/vite/bin/vite.js build --debug || echo "Direct execution also failed" && \
+    exit 1)
