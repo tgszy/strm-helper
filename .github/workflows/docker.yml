@@ -9,38 +9,37 @@ on:
 
 jobs:
   # ====== 可选：前端单元测试 ======
-  #fe-test:
-    #runs-on: ubuntu-latest
-    #steps:
-      #- uses: actions/checkout@v4
-      #- uses: actions/setup-node@v4
-        #with:
-          #node-version: 20
-          #cache: 'npm'
-          #cache-dependency-path: frontend/package-lock.json
-      #- run: npm ci --legacy-peer-deps
-        #working-directory: frontend
-      #- run: npm run test:unit
-        #working-directory: frontend
+  fe-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --legacy-peer-deps
+        working-directory: frontend
+      - run: npm run test:unit
+        working-directory: frontend
 
   # ====== 可选：后端单元测试 ======
-#be-test:
-  #runs-on: ubuntu-latest
-  #steps:
-    #- uses: actions/checkout@v4
-    #- uses: actions/setup-python@v5
-      #with:
-        #python-version: '3.11'
-        #cache: 'pip'
-    #- run: pip install -r requirements.txt
-    #- run: pytest backend/tests
-      #env:
-        #REDIS_URL: redis://fake:6379/0    # 假地址，单元测试里 mock 掉
-        #DATABASE_URL: sqlite+aiosqlite:///:memory:  # 内存库
+  be-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - run: pip install -r requirements.txt
+      - run: pytest backend/tests
+        env:
+          REDIS_URL: redis://localhost:6379/0
 
   # ====== Docker 多阶段构建 & 推送 ======
   docker:
-    #needs: [fe-test, be-test]   # 可选：等测试通过再构建
+    needs: [fe-test, be-test]   # 可选：等测试通过再构建
     runs-on: ubuntu-latest
     steps:
       - name: Checkout（含 .git 供 build 读版本）
