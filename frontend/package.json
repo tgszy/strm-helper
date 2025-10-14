@@ -3,7 +3,9 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc && vite build"
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview",
+    "serve": "vite preview --port 5173"
   },
   "dependencies": {
     "vue": "^3.4.0",
