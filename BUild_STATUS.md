@@ -16,11 +16,16 @@
 - ✅ 添加NODE_ENV=production参数
 - ✅ 启用详细的构建日志输出
 - ✅ 添加备用构建策略（npm run build失败时使用npx vite build）
+- ✅ 使用build:full脚本进行完整的TypeScript检查
+- ✅ 创建简化版Dockerfile（Dockerfile.simple）
+- ✅ 创建调试版Dockerfile（Dockerfile.debug）
 
 ### 3. GitHub Actions改进
 - ✅ 添加构建重试机制（主要构建失败后尝试无缓存重试）
 - ✅ 增加构建超时时间（20-25分钟）
 - ✅ 为测试构建添加相同的错误处理配置
+- ✅ 修复timeout参数错误（使用timeout-minutes替代timeout）
+- ✅ 使用简化版Dockerfile作为主要构建文件
 
 ### 4. 诊断工具
 - ✅ 创建前端构建环境诊断脚本（diagnose-frontend-build.js）
