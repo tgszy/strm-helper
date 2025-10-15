@@ -5,10 +5,10 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:  # 手动触发按钮
+  workflow_dispatch:
 
 jobs:
-  # ====== 可选：前端单元测试 ======
+  # ====== 前端单元测试 ======
   fe-test:
     runs-on: ubuntu-latest
     steps:
@@ -16,14 +16,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          #cache: 'npm'
-          #cache-dependency-path: frontend/package-lock.json
       - run: npm ci --legacy-peer-deps
         working-directory: frontend
       - run: npm run test:unit
         working-directory: frontend
 
-  # ====== 可选：后端单元测试 ======
+  # ====== 后端单元测试 ======
   be-test:
     runs-on: ubuntu-latest
     steps:
@@ -39,10 +37,11 @@ jobs:
 
   # ====== Docker 多阶段构建 & 推送 ======
   docker:
-    needs: [fe-test, be-test]   # 可选：等测试通过再构建
+    needs: [fe-test, be-test]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout（含 .git 供 build 读版本）
+      # 关键：拉完整历史（含 .git 供前端读版本）
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -65,4 +64,5 @@ jobs:
           context: .
           platforms: linux/amd64
           push: true
-          tags: tgszy/strm-helper:latest
+          tags: |
+            tgszy/strm-helper:latest
