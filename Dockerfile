@@ -6,11 +6,11 @@ WORKDIR /app/frontend
 RUN apk add --no-cache python3 make g++ git
 RUN npm config set registry https://registry.npmmirror.com
 
-# ① 装 pnpm
+# ① 安装 pnpm（Alpine 官方脚本）
 RUN npm install -g pnpm@9 --prefix=/usr/local && \
     ln -s /usr/local/bin/pnpm /usr/bin/pnpm
 
-# ② 一次性装全部依赖（含 dev）
+# ② 一次性安装全部依赖（含 dev）
 COPY frontend/pnpm-lock.yaml ./
 COPY frontend/package*.json ./
 RUN pnpm install --frozen-lockfile
@@ -18,21 +18,29 @@ RUN pnpm install --frozen-lockfile
 COPY frontend/ ./
 COPY .git ./.git
 
-# ③ 用 pnpm 执行构建（无需全局 vue-tsc）
-RUN pnpm build
+# ③ 用 pnpm exec 显式调用（Alpine 安全）
+RUN pnpm exec vue-tsc && pnpm exec vite build
 
 # ============== 后端运行阶段 ==============
 FROM --platform=$BUILDPLATFORM python:3.11-slim
 WORKDIR /app
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential curl && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
 COPY backend ./backend
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
+
+# 前端产物
 COPY --from=frontend-builder /app/frontend/dist /app/dist
+
+# 数据卷
 RUN mkdir -p /app/data /media /strm
 VOLUME ["/app/data", "/media", "/strm"]
+
 EXPOSE 35455
 ENTRYPOINT ["./entrypoint.sh"]
