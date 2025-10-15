@@ -8,31 +8,34 @@ on:
   workflow_dispatch:
 
 jobs:
-  # ====== 前端占位测试 ======
   fe-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm ci --legacy-peer-deps
+      - run: pnpm install --frozen-lockfile
         working-directory: frontend
-      # 占位：避免“missing script”退出 1
-      - run: npm run test:unit || echo "no unit tests yet"
+      - run: pnpm test:unit || echo "no unit tests yet"
         working-directory: frontend
 
-  # ====== 后端占位测试 ======
   be-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
       - run: pip install -r requirements.txt
-      # 占位：有 pytest 就跑，没有就跳过
       - run: pytest backend/tests || echo "no backend tests yet"
         env:
           REDIS_URL: redis://localhost:6379/0
