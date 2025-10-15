@@ -5,11 +5,11 @@ WORKDIR /app/frontend
 RUN apk add --no-cache python3 make g++ git && \
     npm config set registry https://registry.npmmirror.com
 
-# ① 安装 pnpm
+# ① 装 pnpm（Alpine 可用）
 RUN npm install -g pnpm@9 --prefix=/usr/local && \
     ln -s /usr/local/bin/pnpm /usr/bin/pnpm
 
-# ② 装依赖（含 dev）
+# ② 一次性装全部依赖（含 dev）
 COPY frontend/pnpm-lock.yaml ./
 COPY frontend/package*.json ./
 RUN pnpm install --frozen-lockfile
