@@ -2,15 +2,14 @@
 FROM --platform=$BUILDPLATFORM node:20-alpine AS frontend-builder
 WORKDIR /app/frontend
 
-# 基础工具 + 国内镜像
-RUN apk add --no-cache python3 make g++ git
-RUN npm config set registry https://registry.npmmirror.com
+RUN apk add --no-cache python3 make g++ git && \
+    npm config set registry https://registry.npmmirror.com
 
-# ① 安装 pnpm（Alpine 官方脚本）
+# ① 安装 pnpm
 RUN npm install -g pnpm@9 --prefix=/usr/local && \
     ln -s /usr/local/bin/pnpm /usr/bin/pnpm
 
-# ② 一次性安装全部依赖（含 dev）
+# ② 装依赖（含 dev）
 COPY frontend/pnpm-lock.yaml ./
 COPY frontend/package*.json ./
 RUN pnpm install --frozen-lockfile
@@ -30,17 +29,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-
 COPY backend ./backend
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
-
-# 前端产物
 COPY --from=frontend-builder /app/frontend/dist /app/dist
-
-# 数据卷
 RUN mkdir -p /app/data /media /strm
 VOLUME ["/app/data", "/media", "/strm"]
-
 EXPOSE 35455
 ENTRYPOINT ["./entrypoint.sh"]
