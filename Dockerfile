@@ -6,7 +6,7 @@ WORKDIR /app/frontend
 RUN apk add --no-cache python3 make g++ git
 RUN npm config set registry https://registry.npmmirror.com
 
-# ① 官方脚本装 pnpm（Alpine 可用）
+# ① 装 pnpm
 RUN npm install -g pnpm@9 --prefix=/usr/local && \
     ln -s /usr/local/bin/pnpm /usr/bin/pnpm
 
@@ -16,9 +16,10 @@ COPY frontend/package*.json ./
 RUN pnpm install --frozen-lockfile
 
 COPY frontend/ ./
-# 如果 build:full 需要 .git 版本号，把 .git 目录也拷进去
 COPY .git ./.git
-RUN pnpm run build
+
+# ③ 用 pnpm 执行构建（无需全局 vue-tsc）
+RUN pnpm build
 
 # ============== 后端运行阶段 ==============
 FROM --platform=$BUILDPLATFORM python:3.11-slim
