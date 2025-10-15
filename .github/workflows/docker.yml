@@ -13,14 +13,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # 关键：含 .git
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      # ① 安装依赖
-      - run: npm ci --legacy-peer-deps
+      - run: pnpm install --frozen-lockfile
         working-directory: frontend
-      # ② 占位测试（避免“missing script”退出 1）
-      - run: npm run test:unit || echo "no unit tests yet"
+      - run: pnpm test:unit || echo "no unit tests yet"
         working-directory: frontend
 
   # ====== 后端占位测试 ======
@@ -28,23 +31,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
       - run: pip install -r requirements.txt
-      # 占位测试：有 pytest 就跑，没有就跳过
       - run: pytest backend/tests || echo "no backend tests yet"
         env:
           REDIS_URL: redis://localhost:6379/0
 
   # ====== Docker 多阶段构建 & 推送 ======
   docker:
-    needs: [fe-test, be-test]   # 等测试通过再构建
+    needs: [fe-test, be-test]
     runs-on: ubuntu-latest
     steps:
-      # 拉完整历史（含 .git 供前端读版本）
-      - name: Checkout
+      - name: Checkout（含 .git 供前端读版本）
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
