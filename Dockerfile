@@ -6,39 +6,29 @@ WORKDIR /app/frontend
 RUN apk add --no-cache python3 make g++ git
 RUN npm config set registry https://registry.npmmirror.com
 
-# 依赖 + 构建
+# 安装 pnpm 并一次性装全部依赖（含 dev）
+RUN npm i -g pnpm
 COPY frontend/package*.json ./
-RUN npm install --legacy-peer-deps
+COPY frontend/pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+
 COPY frontend/ ./
 # 如果 build:full 需要 .git 版本号，把 .git 目录也拷进去
 COPY .git ./.git
-RUN npm run build
+RUN pnpm run build          # 或 npm run build，只要 vue-tsc 存在
 
 # ============== 后端运行阶段 ==============
 FROM --platform=$BUILDPLATFORM python:3.11-slim
 WORKDIR /app
-
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential curl && rm -rf /var/lib/apt/lists/*
-
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-
 COPY backend ./backend
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
-
-# 前端产物
 COPY --from=frontend-builder /app/frontend/dist /app/dist
-
-# 数据卷
+RUN mkdir -p /app/data /media /strm
 VOLUME ["/app/data", "/media", "/strm"]
-
-# 端口
 EXPOSE 35455
-
-# 若后端暂未实现 /health，先把 HEALTHCHECK 注释掉
-# HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-#   CMD curl -f http://localhost:35455/health || exit 1
-
 ENTRYPOINT ["./entrypoint.sh"]
