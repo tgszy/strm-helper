@@ -1,5 +1,5 @@
 # ============== 前端构建阶段 ==============
-FROM --platform=linux/amd64 node:20-alpine AS frontend-builder
+FROM --platform=$BUILDPLATFORM node:20-alpine AS frontend-builder
 WORKDIR /app/frontend
 
 # 基础工具 + 国内镜像
@@ -15,7 +15,7 @@ COPY .git ./.git
 RUN npm run build
 
 # ============== 后端运行阶段 ==============
-FROM --platform=linux/amd64 python:3.11-slim
+FROM --platform=$BUILDPLATFORM python:3.11-slim
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
