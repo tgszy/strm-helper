@@ -8,23 +8,27 @@ on:
   workflow_dispatch:
 
 jobs:
+  # ====== 前端占位测试 ======
   fe-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0          # 含 .git
       - uses: pnpm/action-setup@v4
         with:
           version: 9
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: pnpm install --frozen-lockfile
+      # 生成锁文件（不存在就创建）
+      - run: pnpm install --no-frozen-lockfile
         working-directory: frontend
+      # 占位测试
       - run: pnpm test:unit || echo "no unit tests yet"
         working-directory: frontend
 
+  # ====== 后端占位测试 ======
   be-test:
     runs-on: ubuntu-latest
     steps:
